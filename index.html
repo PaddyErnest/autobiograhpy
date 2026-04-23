@@ -2,12 +2,105 @@
 <html>
 <head>
   <title>Deadly Ernest</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      text-align: center;
+    }
+
+    header {
+      background: #111;
+      color: white;
+      padding: 30px 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 40px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .book {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .book:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .book h3 {
+      margin-bottom: 10px;
+    }
+
+    .book a {
+      text-decoration: none;
+      color: white;
+      background: #007bff;
+      padding: 10px 15px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    .book a:hover {
+      background: #0056b3;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      color: #777;
+    }
+  </style>
 </head>
-<body style="text-align:center; font-family:Arial;">
-  <h1>Welcome to The Website of Deadly Ernest </h1>
-  <p>Click below to read the PDF:</p>
-  <a href="bell-office.pdf" target="_blank">
-    📖 Open PDF
-  </a>
+
+<body>
+
+<header>
+  <h1>📚 Deadly Ernest Library</h1>
+  <p>Explore the collection of books</p>
+</header>
+
+<div class="container">
+
+  <div class="book">
+    <h3>Book One</h3>
+    <p>A short description of the book.</p>
+    <a href="bell-office.pdf" target="_blank">📖 Read</a>
+  </div>
+
+  <div class="book">
+    <h3>Book Two</h3>
+    <p>Another great story.</p>
+    <a href="book2.pdf" target="_blank">📖 Read</a>
+  </div>
+
+  <div class="book">
+    <h3>Book Three</h3>
+    <p>More content here.</p>
+    <a href="book3.pdf" target="_blank">📖 Read</a>
+  </div>
+
+</div>
+
+<footer>
+  © 2026 Deadly Ernest
+</footer>
+
 </body>
 </html>
