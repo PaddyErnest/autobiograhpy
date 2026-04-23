@@ -2,69 +2,92 @@
 <html>
 <head>
   <title>Deadly Ernest</title>
+
+  <!-- Google Font (modern clean style) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f7fa;
-      text-align: center;
+      font-family: 'Inter', sans-serif;
+      background: #f2f2f2;
+      color: #111;
     }
 
     header {
-      background: #111;
-      color: white;
-      padding: 30px 20px;
+      padding: 80px 20px 40px;
+      text-align: center;
     }
 
     h1 {
+      font-size: 42px;
+      font-weight: 600;
+      letter-spacing: -1px;
       margin: 0;
-      font-size: 32px;
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      color: #777;
+      font-size: 16px;
     }
 
     .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      padding: 40px;
-      max-width: 1000px;
+      max-width: 1100px;
       margin: auto;
+      padding: 40px 20px 80px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px;
     }
 
     .book {
       background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
+      border-radius: 18px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      transition: all 0.25s ease;
+      text-align: left;
     }
 
     .book:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
     }
 
     .book h3 {
-      margin-bottom: 10px;
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .book p {
+      font-size: 14px;
+      color: #666;
+      margin: 12px 0 20px;
     }
 
     .book a {
       text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
       color: white;
-      background: #007bff;
-      padding: 10px 15px;
-      border-radius: 6px;
+      background: #111;
+      padding: 10px 18px;
+      border-radius: 999px;
       display: inline-block;
-      margin-top: 10px;
+      transition: all 0.2s ease;
     }
 
     .book a:hover {
-      background: #0056b3;
+      background: #333;
     }
 
     footer {
-      margin-top: 40px;
-      padding: 20px;
-      color: #777;
+      text-align: center;
+      padding: 30px;
+      font-size: 13px;
+      color: #888;
     }
   </style>
 </head>
@@ -72,28 +95,28 @@
 <body>
 
 <header>
-  <h1>📚 Deadly Ernest Library</h1>
-  <p>Explore the collection of books</p>
+  <h1>Deadly Ernest</h1>
+  <div class="subtitle">A collection of stories & memories</div>
 </header>
 
 <div class="container">
 
   <div class="book">
-    <h3>Book One</h3>
-    <p>A short description of the book.</p>
-    <a href="bell-office.pdf" target="_blank">📖 Read</a>
+    <h3>Bell Office</h3>
+    <p>A personal memoir exploring past memories.</p>
+    <a href="bell-office.pdf" target="_blank">Read →</a>
   </div>
 
   <div class="book">
     <h3>Book Two</h3>
-    <p>Another great story.</p>
-    <a href="book2.pdf" target="_blank">📖 Read</a>
+    <p>Another story from the collection.</p>
+    <a href="book2.pdf" target="_blank">Read →</a>
   </div>
 
   <div class="book">
     <h3>Book Three</h3>
-    <p>More content here.</p>
-    <a href="book3.pdf" target="_blank">📖 Read</a>
+    <p>More content to explore.</p>
+    <a href="book3.pdf" target="_blank">Read →</a>
   </div>
 
 </div>
