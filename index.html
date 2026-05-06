@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Patrick Ashley Ernest</title>
+
+  <!-- 关键：移动端适配 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
@@ -15,85 +17,158 @@
     }
 
     header {
-      padding: 60px 20px 30px;
+      padding: 80px 20px 40px;
       text-align: center;
     }
 
     h1 {
-      font-size: 34px;
+      font-size: 42px;
       margin: 0;
+      font-weight: 600;
     }
 
-    .subtitle {
-      color: #777;
-      margin-top: 10px;
-      font-size: 14px;
+    .subtitle-top {
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+
+    .header-text {
+      max-width: 700px;
+      margin: 25px auto 0;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #444;
+      padding: 0 10px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #e5e5e5;
+      max-width: 900px;
+      margin: 30px auto;
     }
 
     .container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 25px;
-      padding: 20px;
-      max-width: 900px;
+      max-width: 1100px;
       margin: auto;
+      padding: 20px 16px 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
     }
 
     .book {
-      text-align: center;
-      cursor: pointer;
-      transition: 0.25s;
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      transition: all 0.25s ease;
     }
 
     .book:hover {
-      transform: translateY(-6px);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.08);
     }
 
-    .cover {
-      width: 100%;
-      border-radius: 10px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    .book h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 600;
     }
 
-    .title {
-      margin-top: 10px;
+    .book p {
       font-size: 14px;
-      font-weight: 500;
+      color: #666;
+      margin: 10px 0 16px;
     }
+
+    .book a {
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      color: white;
+      background: #111;
+      padding: 8px 16px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .book a:hover {
+      background: #333;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px 10px 30px;
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* 🔥 手机专项优化（关键） */
+    @media (max-width: 600px) {
+
+      header {
+        padding: 50px 15px 20px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .header-text {
+        font-size: 14px;
+        margin-top: 20px;
+      }
+
+      .container {
+        padding: 10px 12px 20px;
+        gap: 16px;
+      }
+
+      .book {
+        padding: 18px;
+      }
+
+      footer {
+        padding: 15px;
+      }
+    }
+
   </style>
 </head>
 
 <body>
 
 <header>
+
+  <div class="subtitle-top">
+    THE OFFICIAL WEBSITE OF
+  </div>
+
   <h1>Patrick Ashley Ernest</h1>
-  <div class="subtitle">Digital Library</div>
+
+  <div class="header-text">
+    <p>
+      This is the on-line home of me, Pat Ernest. It is a repository for my legacy documents, 
+      to be held in perpetuity.
+    </p>
+
+    <p>
+      It is hoped that those interested in perusing these texts will have a greater appreciation 
+      of my family, my wife and of a bloke born and raised in the pre-digital era.
+    </p>
+  </div>
+
 </header>
+
+<hr class="divider">
 
 <div class="container">
 
-  <div class="book" onclick="openBook('importance-me.pdf')">
-    <img src="covers/book1.jpg" class="cover">
-    <div class="title">The Importance of Being... Me</div>
+  <div class="book">
+    <h3>The Importance of Being... Me</h3>
+    <p>A reflective personal journey.</p>
+    <a href="books/importance-me.pdf" target="_blank">Read →</a>
   </div>
-
-  <div class="book" onclick="openBook('coronavirus-journal-2.pdf')">
-    <img src="covers/book2.jpg" class="cover">
-    <div class="title">Coronavirus Journal 2</div>
-  </div>
-
-  <div class="book" onclick="openBook('busy-people.pdf')">
-    <img src="covers/book3.jpg" class="cover">
-    <div class="title">Busy People Make Time</div>
-  </div>
-
-</div>
-
-<script>
-function openBook(file) {
-  window.location.href = "reader.html?book=" + file;
-}
-</script>
-
-</body>
-</html>
