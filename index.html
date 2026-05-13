@@ -3,7 +3,6 @@
 <head>
   <title>Patrick Ashley Ernest</title>
 
-  <!-- 关键：移动端适配 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
@@ -65,6 +64,7 @@
       padding: 20px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.05);
       transition: all 0.25s ease;
+      cursor: pointer; /* 🔥 关键：提示可点击 */
     }
 
     .book:hover {
@@ -84,21 +84,6 @@
       margin: 10px 0 16px;
     }
 
-    .book a {
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 500;
-      color: white;
-      background: #111;
-      padding: 8px 16px;
-      border-radius: 999px;
-      display: inline-block;
-    }
-
-    .book a:hover {
-      background: #333;
-    }
-
     footer {
       text-align: center;
       padding: 20px 10px 30px;
@@ -106,9 +91,8 @@
       color: #888;
     }
 
-    /* 🔥 手机专项优化（关键） */
+    /* 手机优化 */
     @media (max-width: 600px) {
-
       header {
         padding: 50px 15px 20px;
       }
@@ -119,7 +103,6 @@
 
       .header-text {
         font-size: 14px;
-        margin-top: 20px;
       }
 
       .container {
@@ -129,10 +112,6 @@
 
       .book {
         padding: 18px;
-      }
-
-      footer {
-        padding: 15px;
       }
     }
 
@@ -167,22 +146,19 @@
 
 <div class="container">
 
-  <div class="book">
+  <div class="book" onclick="openBook('importance-me.pdf')">
     <h3>The Importance of Being... Me</h3>
     <p>A reflective personal journey.</p>
-    <a href="books/importance-me.pdf" target="_blank">Read →</a>
   </div>
 
-  <div class="book">
+  <div class="book" onclick="openBook('coronavirus-journal-2.pdf')">
     <h3>Coronavirus Journal 2</h3>
     <p>Thoughts and records during the pandemic.</p>
-    <a href="books/coronavirus-journal-2.pdf" target="_blank">Read →</a>
   </div>
 
-  <div class="book">
+  <div class="book" onclick="openBook('busy-people.pdf')">
     <h3>Memoir – Busy People Make Time</h3>
     <p>On priorities, life, and time.</p>
-    <a href="books/busy-people.pdf" target="_blank">Read →</a>
   </div>
 
 </div>
@@ -190,6 +166,13 @@
 <footer>
   © 2026 Patrick Ashley Ernest
 </footer>
+
+<!-- 🔥 关键新增代码：控制跳转到 reader.html -->
+<script>
+function openBook(file) {
+  window.location.href = "reader.html?book=" + file;
+}
+</script>
 
 </body>
 </html>
