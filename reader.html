@@ -38,18 +38,18 @@
 
     canvas {
       max-width: 100%;
-      height: auto;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
 
-    /* 控制栏 */
+    /* ⭐ 关键改动：UI永远显示（不再依赖PDF加载） */
     .controls {
       position: fixed;
       bottom: 20px;
       width: 100%;
-      display: none;
+      display: flex;
       justify-content: center;
       gap: 20px;
+      z-index: 20;
     }
 
     button {
@@ -62,11 +62,6 @@
       font-size: 13px;
     }
 
-    .error {
-      padding: 20px;
-      color: red;
-    }
-
     .pageinfo {
       position: fixed;
       bottom: 70px;
@@ -74,6 +69,11 @@
       text-align: center;
       font-size: 12px;
       opacity: 0.7;
+    }
+
+    .error {
+      padding: 20px;
+      color: red;
     }
   </style>
 </head>
@@ -90,27 +90,22 @@
   <canvas id="pdfCanvas"></canvas>
 </div>
 
-<div class="pageinfo" id="pageinfo"></div>
+<div class="pageinfo" id="pageinfo">Loading...</div>
 
-<div class="controls" id="controls">
+<!-- ⭐ 控制栏：永远显示（关键修复） -->
+<div class="controls">
   <button onclick="prevPage()">◀ Prev</button>
-
-  <!-- ⭐ 中间按钮：书签（替换夜间模式） -->
   <button onclick="bookmarkPage()">🔖 Bookmark</button>
-
   <button onclick="nextPage()">Next ▶</button>
 </div>
 
-<!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const file = params.get('book');
+const file = new URLSearchParams(location.search).get("book");
 
 const canvas = document.getElementById("pdfCanvas");
 const ctx = canvas.getContext("2d");
-const controls = document.getElementById("controls");
 const pageinfo = document.getElementById("pageinfo");
 
 let pdfDoc = null;
@@ -120,25 +115,29 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 /* =========================
+   📌 初始化阅读进度
+   ========================= */
+if (file) {
+  const savedPage = localStorage.getItem("page_" + file);
+  if (savedPage) pageNum = parseInt(savedPage);
+}
+
+/* =========================
    📌 加载 PDF
    ========================= */
 if (!file) {
   document.body.innerHTML = "<div class='error'>No book selected</div>";
 } else {
+
   pdfjsLib.getDocument(file).promise.then(pdf => {
+
     pdfDoc = pdf;
 
-    // ✔ 成功加载才显示控制栏
-    controls.style.display = "flex";
-
-    // 恢复阅读进度（如果有）
-    const saved = localStorage.getItem("page_" + file);
-    if (saved) pageNum = parseInt(saved);
-
     renderPage(pageNum);
+
   }).catch(err => {
     console.error(err);
-    document.body.innerHTML = "<div class='error'>Failed to load PDF</div>";
+    pageinfo.innerText = "Failed to load PDF";
   });
 }
 
@@ -146,6 +145,8 @@ if (!file) {
    📖 渲染页面
    ========================= */
 function renderPage(num) {
+  if (!pdfDoc) return;
+
   pdfDoc.getPage(num).then(page => {
 
     const viewport = page.getViewport({ scale: 1.5 });
@@ -160,13 +161,12 @@ function renderPage(num) {
 
     pageinfo.innerText = num + " / " + pdfDoc.numPages;
 
-    // 保存进度
     localStorage.setItem("page_" + file, num);
   });
 }
 
 /* =========================
-   📌 翻页逻辑（统一）
+   📌 翻页
    ========================= */
 function nextPage() {
   if (!pdfDoc) return;
@@ -185,15 +185,23 @@ function prevPage() {
 }
 
 /* =========================
-   🔖 书签功能（新增核心）
+   🔖 书签（稳定版）
    ========================= */
 function bookmarkPage() {
+  if (!file) return;
+
   localStorage.setItem("bookmark_" + file, pageNum);
-  alert("📖 Bookmarked page " + pageNum);
+
+  pageinfo.innerText =
+    "🔖 Bookmarked page " + pageNum + " / " + pdfDoc.numPages;
+
+  setTimeout(() => {
+    pageinfo.innerText = pageNum + " / " + pdfDoc.numPages;
+  }, 1200);
 }
 
 /* =========================
-   📱 手势翻页（手机体验）
+   📱 手势翻页
    ========================= */
 let startX = 0;
 
