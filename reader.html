@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Kindle Reader V2</title>
+  <title>Kindle Reader V3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -17,11 +17,12 @@
     .topbar {
       display: flex;
       justify-content: space-between;
-      padding: 12px;
+      align-items: center;
+      padding: 10px;
       background: #000;
       position: fixed;
-      top: 0;
       width: 100%;
+      top: 0;
       z-index: 10;
     }
 
@@ -31,12 +32,12 @@
       font-size: 14px;
     }
 
-    .center {
+    #title {
       font-size: 13px;
       opacity: 0.8;
     }
 
-    /* 阅读区 */
+    /* 阅读区域 */
     .viewer {
       display: flex;
       justify-content: center;
@@ -48,7 +49,27 @@
     canvas {
       max-width: 100%;
       max-height: 100vh;
-      transition: transform 0.2s ease;
+    }
+
+    /* 翻页按钮 */
+    .controls {
+      position: fixed;
+      bottom: 12px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      z-index: 20;
+    }
+
+    button {
+      border: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      background: white;
+      color: black;
+      font-size: 12px;
+      font-weight: bold;
     }
 
     /* 左右点击翻页区域 */
@@ -60,61 +81,13 @@
       z-index: 5;
     }
 
-    .left {
-      left: 0;
-    }
+    .left { left: 0; }
+    .right { right: 0; }
 
-    .right {
-      right: 0;
-    }
-
-    /* 控制栏 */
-    .controls {
-      position: fixed;
-      bottom: 15px;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      z-index: 20;
-    }
-
-    button {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 20px;
-      background: white;
-      color: black;
-      font-weight: bold;
-      font-size: 12px;
-    }
-
-    /* 夜间模式 */
-    .dark {
-      background: #000 !important;
-    }
-
-    /* 设置面板 */
-    .panel {
-      position: fixed;
-      top: 50px;
-      right: 10px;
-      background: rgba(0,0,0,0.8);
-      padding: 10px;
-      border-radius: 10px;
-      display: none;
-      z-index: 30;
-    }
-
-    .panel button {
-      display: block;
-      margin: 5px 0;
-      width: 100%;
-    }
-
+    /* 进度 */
     .progress {
       position: fixed;
-      bottom: 60px;
+      bottom: 55px;
       width: 100%;
       text-align: center;
       font-size: 12px;
@@ -125,46 +98,42 @@
 
 <body>
 
+<!-- 顶部 -->
 <div class="topbar">
   <a href="index.html">← Library</a>
-  <div class="center" id="title">Loading...</div>
-  <button onclick="togglePanel()">⚙</button>
+  <div id="title">Loading...</div>
+  <div></div>
 </div>
 
+<!-- 阅读区 -->
 <div class="viewer">
-  <canvas id="pdfCanvas"></canvas>
+  <canvas id="canvas"></canvas>
 </div>
 
+<!-- 进度 -->
 <div class="progress" id="progress"></div>
 
-<!-- 翻页热区 -->
-<div class="hotzone left" onclick="prevPage()"></div>
-<div class="hotzone right" onclick="nextPage()"></div>
-
-<!-- 控制按钮 -->
+<!-- 控制 -->
 <div class="controls">
-  <button onclick="prevPage()">◀</button>
-  <button onclick="toggleDark()">🌙</button>
-  <button onclick="nextPage()">▶</button>
+  <button onclick="prev()">◀</button>
+  <button onclick="bookmark()">🔖</button>
+  <button onclick="next()">▶</button>
 </div>
 
-<!-- 设置面板 -->
-<div class="panel" id="panel">
-  <button onclick="zoomIn()">A+</button>
-  <button onclick="zoomOut()">A-</button>
-</div>
+<!-- 翻页热区 -->
+<div class="hotzone left" onclick="prev()"></div>
+<div class="hotzone right" onclick="next()"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const file = params.get('book');
+const file = new URLSearchParams(location.search).get("book");
 
 let pdfDoc = null;
-let pageNum = 1;
+let page = 1;
 let scale = 1.5;
 
-const canvas = document.getElementById("pdfCanvas");
+const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const progress = document.getElementById("progress");
 const title = document.getElementById("title");
@@ -172,66 +141,57 @@ const title = document.getElementById("title");
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-/* =========================
-   📖 加载 PDF
-   ========================= */
-function resolvePath(file) {
-  return file ? file.replace(/^\//,'') : null;
-}
-
-if (!file) {
-  document.body.innerHTML = "No book selected";
-} else {
-
-  const path = resolvePath(file);
+/* 📌 阅读进度恢复 */
+if (file) {
+  const saved = localStorage.getItem("page_" + file);
+  if (saved) page = parseInt(saved);
   title.innerText = file;
-
-  pdfjsLib.getDocument(path).promise.then(pdf => {
-    pdfDoc = pdf;
-    renderPage(pageNum);
-  }).catch(err => {
-    document.body.innerHTML = "Failed to load PDF";
-  });
 }
 
-/* =========================
-   📖 渲染
-   ========================= */
-function renderPage(num) {
-  pdfDoc.getPage(num).then(page => {
+/* 📌 加载 PDF */
+pdfjsLib.getDocument(file).promise.then(pdf => {
+  pdfDoc = pdf;
+  render();
+});
 
-    const viewport = page.getViewport({ scale });
+/* 📌 渲染 */
+function render() {
+  pdfDoc.getPage(page).then(p => {
+
+    const viewport = p.getViewport({ scale });
 
     canvas.height = viewport.height;
     canvas.width = viewport.width;
 
-    page.render({
+    p.render({
       canvasContext: ctx,
-      viewport: viewport
+      viewport
     });
 
-    progress.innerText = num + " / " + pdfDoc.numPages;
+    progress.innerText = page + " / " + pdfDoc.numPages;
+
+    localStorage.setItem("page_" + file, page);
   });
 }
 
-/* =========================
-   📌 翻页
-   ========================= */
-function nextPage() {
-  if (pageNum >= pdfDoc.numPages) return;
-  pageNum++;
-  renderPage(pageNum);
+/* 📌 翻页 */
+function next() {
+  if (!pdfDoc) return;
+  if (page < pdfDoc.numPages) {
+    page++;
+    render();
+  }
 }
 
-function prevPage() {
-  if (pageNum <= 1) return;
-  pageNum--;
-  renderPage(pageNum);
+function prev() {
+  if (!pdfDoc) return;
+  if (page > 1) {
+    page--;
+    render();
+  }
 }
 
-/* =========================
-   📱 手势翻页（关键）
-   ========================= */
+/* 📱 手势翻页 */
 let startX = 0;
 
 document.addEventListener("touchstart", e => {
@@ -241,36 +201,14 @@ document.addEventListener("touchstart", e => {
 document.addEventListener("touchend", e => {
   let endX = e.changedTouches[0].clientX;
 
-  if (startX - endX > 50) nextPage();
-  if (endX - startX > 50) prevPage();
+  if (startX - endX > 50) next();
+  if (endX - startX > 50) prev();
 });
 
-/* =========================
-   🌙 夜间模式
-   ========================= */
-function toggleDark() {
-  document.body.classList.toggle("dark");
-}
-
-/* =========================
-   🔍 字体缩放
-   ========================= */
-function zoomIn() {
-  scale += 0.2;
-  renderPage(pageNum);
-}
-
-function zoomOut() {
-  scale = Math.max(1, scale - 0.2);
-  renderPage(pageNum);
-}
-
-/* =========================
-   ⚙ 面板
-   ========================= */
-function togglePanel() {
-  const p = document.getElementById("panel");
-  p.style.display = p.style.display === "block" ? "none" : "block";
+/* 🔖 书签 */
+function bookmark() {
+  localStorage.setItem("bookmark_" + file, page);
+  alert("Bookmarked page " + page);
 }
 </script>
 
