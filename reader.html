@@ -7,18 +7,16 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
       background: #111;
       color: white;
+      font-family: Arial;
     }
 
-    /* 顶部导航栏 */
     .topbar {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 12px 15px;
-      background: #000;
+      padding: 12px;
+      background: black;
       position: sticky;
       top: 0;
       z-index: 10;
@@ -30,78 +28,106 @@
       font-size: 14px;
     }
 
-    .title {
-      font-size: 13px;
-      opacity: 0.8;
-    }
-
-    /* PDF展示区域 */
     .viewer {
-      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       height: calc(100vh - 50px);
-      border: none;
-      background: #111;
     }
 
-    /* 错误提示 */
-    .error {
-      padding: 20px;
-      color: red;
-      font-size: 14px;
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    button {
+      padding: 10px 18px;
+      border-radius: 20px;
+      border: none;
+      background: white;
+      color: black;
+      font-weight: bold;
     }
   </style>
 </head>
 
 <body>
 
-<!-- 顶部栏 -->
 <div class="topbar">
   <a href="index.html">← Library</a>
-  <div class="title">Reading Mode</div>
+  <div>PDF Reader</div>
   <div></div>
 </div>
 
-<!-- PDF容器 -->
-<div id="container"></div>
+<div class="viewer">
+  <canvas id="pdf-render"></canvas>
+</div>
+
+<div class="controls">
+  <button onclick="prevPage()">◀ Prev</button>
+  <button onclick="nextPage()">Next ▶</button>
+</div>
+
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const book = params.get('book');
+const urlParams = new URLSearchParams(window.location.search);
+const file = urlParams.get('book');
 
-const container = document.getElementById("container");
-
-/*
-  ✅ 核心逻辑：
-  - 你现在所有 PDF 都在根目录
-  - 所以直接使用文件名即可
-*/
-function resolvePath(file) {
-  if (!file) return null;
-
-  // 去掉可能的前导 /
-  file = file.replace(/^\//, '');
-
-  // 根目录模式：直接返回
-  return file;
+if (!file) {
+  alert("No book selected");
 }
 
-if (!book) {
-  container.innerHTML = "<div class='error'>No book selected</div>";
-} else {
-  const path = resolvePath(book);
+// PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-  container.innerHTML = `
-    <iframe 
-      class="viewer"
-      src="${path}">
-    </iframe>
+let pdfDoc = null;
+let pageNum = 1;
+let canvas = document.getElementById("pdf-render");
+let ctx = canvas.getContext("2d");
 
-    <noscript>
-      <div class="error">
-        Cannot load PDF: ${path}
-      </div>
-    </noscript>
-  `;
+pdfjsLib.getDocument(file).promise.then(pdf => {
+  pdfDoc = pdf;
+  renderPage(pageNum);
+});
+
+function renderPage(num) {
+  pdfDoc.getPage(num).then(page => {
+    let viewport = page.getViewport({ scale: 1.5 });
+
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    let renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+
+    page.render(renderContext);
+  });
+}
+
+function nextPage() {
+  if (pageNum >= pdfDoc.numPages) return;
+  pageNum++;
+  renderPage(pageNum);
+}
+
+function prevPage() {
+  if (pageNum <= 1) return;
+  pageNum--;
+  renderPage(pageNum);
 }
 </script>
 
