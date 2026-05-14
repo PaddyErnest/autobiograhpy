@@ -1,33 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+    }
+
+    /* 顶部栏 */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      background: #000;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .title {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    /* PDF容器 */
+    .viewer {
+      width: 100%;
+      height: calc(100vh - 50px);
+      border: none;
+    }
+
+    .error {
+      padding: 20px;
+      color: red;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <a href="index.html">← Library</a>
+  <div class="title">Reading Mode</div>
+  <div></div>
+</div>
+
+<div id="container"></div>
+
 <script>
 const params = new URLSearchParams(window.location.search);
 let book = params.get('book');
 
 const container = document.getElementById("container");
 
-// ❗ 自动路径识别逻辑（核心）
+/* =========================
+   🔥 核心逻辑（重点）
+   ========================= */
 function resolvePath(file) {
   if (!file) return null;
 
-  // 如果已经是完整路径（包含 / ）
-  if (file.includes("/")) {
+  // 去掉可能的前导 /
+  file = file.replace(/^\//, '');
+
+  // 如果已经有路径（例如 books/xxx.pdf），直接用
+  if (file.includes('/')) {
     return file;
   }
 
-  // 默认放 books 文件夹
-  return "books/" + file;
+  // 默认：根目录
+  return file;
 }
 
+/* =========================
+   加载 PDF
+   ========================= */
 if (!book) {
-  container.innerHTML = "<div style='color:red;padding:20px'>No book selected</div>";
+  container.innerHTML = "<div class='error'>No book selected</div>";
 } else {
   const path = resolvePath(book);
 
   container.innerHTML = `
-    <object data="${path}" type="application/pdf" style="width:100%;height:100vh;">
-      <div style="color:red;padding:20px">
-        Cannot load PDF: ${path}
-      </div>
-    </object>
+    <iframe class="viewer" src="${path}"></iframe>
+
+    <div id="fallback" class="error" style="display:none;">
+      Cannot load PDF: ${path}
+    </div>
   `;
 }
 </script>
+
+</body>
+</html>
