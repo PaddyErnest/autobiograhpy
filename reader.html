@@ -7,13 +7,13 @@
   <style>
     body {
       margin: 0;
+      font-family: Arial;
       background: #111;
       color: white;
-      font-family: Arial;
     }
 
     .topbar {
-      padding: 10px;
+      padding: 12px;
       background: #000;
       display: flex;
       justify-content: space-between;
@@ -26,10 +26,9 @@
       font-size: 14px;
     }
 
-    iframe {
+    .viewer {
       width: 100%;
       height: calc(100vh - 50px);
-      border: none;
     }
 
     .error {
@@ -47,29 +46,27 @@
   <div>Reader</div>
 </div>
 
-<iframe id="viewer"></iframe>
-
-<div id="error" class="error" style="display:none;"></div>
+<div id="container"></div>
 
 <script>
 const params = new URLSearchParams(window.location.search);
 const book = params.get('book');
 
-const viewer = document.getElementById("viewer");
-const errorBox = document.getElementById("error");
+const container = document.getElementById("container");
 
 if (!book) {
-  errorBox.style.display = "block";
-  errorBox.innerText = "No book selected.";
+  container.innerHTML = "<div class='error'>No book selected</div>";
 } else {
   const path = "books/" + book;
-  viewer.src = path;
 
-  // 简单兜底提示（如果加载失败）
-  viewer.onerror = function() {
-    errorBox.style.display = "block";
-    errorBox.innerText = "Cannot load: " + path;
-  };
+  container.innerHTML = `
+    <object class="viewer" data="${path}" type="application/pdf">
+      <div class="error">
+        Cannot display PDF.<br>
+        Try opening: ${path}
+      </div>
+    </object>
+  `;
 }
 </script>
 
