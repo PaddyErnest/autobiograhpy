@@ -7,21 +7,17 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
       background: #111;
       color: white;
+      font-family: Arial;
     }
 
-    /* 顶部导航 */
     .topbar {
+      padding: 10px;
+      background: #000;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 15px;
-      background: #000;
-      position: sticky;
-      top: 0;
-      z-index: 10;
     }
 
     .topbar a {
@@ -30,45 +26,17 @@
       font-size: 14px;
     }
 
-    .title {
-      font-size: 13px;
-      opacity: 0.8;
-    }
-
-    /* PDF 阅读区 */
     iframe {
       width: 100%;
       height: calc(100vh - 50px);
       border: none;
-      background: #222;
     }
 
-    /* 翻页按钮（视觉辅助） */
-    .nav {
-      position: fixed;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 32px;
-      color: rgba(255,255,255,0.3);
-      cursor: pointer;
-      user-select: none;
-      padding: 10px;
+    .error {
+      padding: 20px;
+      color: red;
+      font-size: 14px;
     }
-
-    .nav:hover {
-      color: rgba(255,255,255,0.7);
-    }
-
-    .left { left: 5px; }
-    .right { right: 5px; }
-
-    /* 手机优化 */
-    @media (max-width: 600px) {
-      .nav {
-        display: none; /* 手机隐藏翻页按钮，避免误触 */
-      }
-    }
-
   </style>
 </head>
 
@@ -76,45 +44,33 @@
 
 <div class="topbar">
   <a href="index.html">← Library</a>
-  <div class="title">Reading Mode</div>
-  <div></div>
+  <div>Reader</div>
 </div>
 
-<div class="nav left" onclick="prevPage()">‹</div>
-<div class="nav right" onclick="nextPage()">›</div>
+<iframe id="viewer"></iframe>
 
-<iframe id="pdfViewer"></iframe>
+<div id="error" class="error" style="display:none;"></div>
 
 <script>
-  // 1. 获取 URL 参数
-  const urlParams = new URLSearchParams(window.location.search);
-  const book = urlParams.get('book');
+const params = new URLSearchParams(window.location.search);
+const book = params.get('book');
 
-  // 2. 当前页（用于PDF翻页）
-  let page = 1;
+const viewer = document.getElementById("viewer");
+const errorBox = document.getElementById("error");
 
-  // 3. 加载 PDF
-  function loadPDF() {
-    document.getElementById("pdfViewer").src =
-      "books/" + book + "#page=" + page;
-  }
+if (!book) {
+  errorBox.style.display = "block";
+  errorBox.innerText = "No book selected.";
+} else {
+  const path = "books/" + book;
+  viewer.src = path;
 
-  // 4. 下一页
-  function nextPage() {
-    page++;
-    loadPDF();
-  }
-
-  // 5. 上一页
-  function prevPage() {
-    if (page > 1) {
-      page--;
-      loadPDF();
-    }
-  }
-
-  // 初始化
-  loadPDF();
+  // 简单兜底提示（如果加载失败）
+  viewer.onerror = function() {
+    errorBox.style.display = "block";
+    errorBox.innerText = "Cannot load: " + path;
+  };
+}
 </script>
 
 </body>
