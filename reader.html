@@ -12,7 +12,7 @@
       color: white;
     }
 
-    /* 顶部栏 */
+    /* 顶部导航栏 */
     .topbar {
       display: flex;
       justify-content: space-between;
@@ -35,13 +35,15 @@
       opacity: 0.8;
     }
 
-    /* PDF容器 */
+    /* PDF展示区域 */
     .viewer {
       width: 100%;
       height: calc(100vh - 50px);
       border: none;
+      background: #111;
     }
 
+    /* 错误提示 */
     .error {
       padding: 20px;
       color: red;
@@ -52,52 +54,53 @@
 
 <body>
 
+<!-- 顶部栏 -->
 <div class="topbar">
   <a href="index.html">← Library</a>
   <div class="title">Reading Mode</div>
   <div></div>
 </div>
 
+<!-- PDF容器 -->
 <div id="container"></div>
 
 <script>
 const params = new URLSearchParams(window.location.search);
-let book = params.get('book');
+const book = params.get('book');
 
 const container = document.getElementById("container");
 
-/* =========================
-   🔥 核心逻辑（重点）
-   ========================= */
+/*
+  ✅ 核心逻辑：
+  - 你现在所有 PDF 都在根目录
+  - 所以直接使用文件名即可
+*/
 function resolvePath(file) {
   if (!file) return null;
 
   // 去掉可能的前导 /
   file = file.replace(/^\//, '');
 
-  // 如果已经有路径（例如 books/xxx.pdf），直接用
-  if (file.includes('/')) {
-    return file;
-  }
-
-  // 默认：根目录
+  // 根目录模式：直接返回
   return file;
 }
 
-/* =========================
-   加载 PDF
-   ========================= */
 if (!book) {
   container.innerHTML = "<div class='error'>No book selected</div>";
 } else {
   const path = resolvePath(book);
 
   container.innerHTML = `
-    <iframe class="viewer" src="${path}"></iframe>
+    <iframe 
+      class="viewer"
+      src="${path}">
+    </iframe>
 
-    <div id="fallback" class="error" style="display:none;">
-      Cannot load PDF: ${path}
-    </div>
+    <noscript>
+      <div class="error">
+        Cannot load PDF: ${path}
+      </div>
+    </noscript>
   `;
 }
 </script>
