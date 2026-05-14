@@ -41,25 +41,32 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
 
-    /* ⭐ 关键改动：UI永远显示（不再依赖PDF加载） */
+    /* ⭐ 统一控制栏样式 */
     .controls {
       position: fixed;
       bottom: 20px;
       width: 100%;
       display: flex;
       justify-content: center;
-      gap: 20px;
+      gap: 18px;
       z-index: 20;
     }
 
-    button {
-      padding: 10px 18px;
-      border-radius: 20px;
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 999px;
       border: none;
       background: white;
       color: black;
-      font-weight: bold;
       font-size: 13px;
+      font-weight: 500;
+    }
+
+    .btn span.icon {
+      font-size: 14px;
     }
 
     .pageinfo {
@@ -71,10 +78,15 @@
       opacity: 0.7;
     }
 
-    .error {
-      padding: 20px;
-      color: red;
+    .hotzone {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 50%;
     }
+
+    .left { left: 0; }
+    .right { right: 0; }
   </style>
 </head>
 
@@ -92,12 +104,21 @@
 
 <div class="pageinfo" id="pageinfo">Loading...</div>
 
-<!-- ⭐ 控制栏：永远显示（关键修复） -->
+<!-- ⭐ 统一按钮：图标 + 文字 Bookmark -->
 <div class="controls">
-  <button onclick="prevPage()">◀ Prev</button>
-  <button onclick="bookmarkPage()">🔖 Bookmark</button>
-  <button onclick="nextPage()">Next ▶</button>
+  <button class="btn" onclick="prevPage()">◀ Prev</button>
+
+  <button class="btn" onclick="bookmarkPage()">
+    <span class="icon">🔖</span>
+    Bookmark
+  </button>
+
+  <button class="btn" onclick="nextPage()">Next ▶</button>
 </div>
+
+<!-- 翻页热区 -->
+<div class="hotzone left" onclick="prevPage()"></div>
+<div class="hotzone right" onclick="nextPage()"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
@@ -115,39 +136,26 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 /* =========================
-   📌 初始化阅读进度
+   📌 初始化进度
    ========================= */
 if (file) {
-  const savedPage = localStorage.getItem("page_" + file);
-  if (savedPage) pageNum = parseInt(savedPage);
+  const saved = localStorage.getItem("page_" + file);
+  if (saved) pageNum = parseInt(saved);
 }
 
 /* =========================
    📌 加载 PDF
    ========================= */
-if (!file) {
-  document.body.innerHTML = "<div class='error'>No book selected</div>";
-} else {
-
-  pdfjsLib.getDocument(file).promise.then(pdf => {
-
-    pdfDoc = pdf;
-
-    renderPage(pageNum);
-
-  }).catch(err => {
-    console.error(err);
-    pageinfo.innerText = "Failed to load PDF";
-  });
-}
+pdfjsLib.getDocument(file).promise.then(pdf => {
+  pdfDoc = pdf;
+  render();
+});
 
 /* =========================
-   📖 渲染页面
+   📖 渲染
    ========================= */
-function renderPage(num) {
-  if (!pdfDoc) return;
-
-  pdfDoc.getPage(num).then(page => {
+function render() {
+  pdfDoc.getPage(pageNum).then(page => {
 
     const viewport = page.getViewport({ scale: 1.5 });
 
@@ -159,9 +167,9 @@ function renderPage(num) {
       viewport: viewport
     });
 
-    pageinfo.innerText = num + " / " + pdfDoc.numPages;
+    pageinfo.innerText = pageNum + " / " + pdfDoc.numPages;
 
-    localStorage.setItem("page_" + file, num);
+    localStorage.setItem("page_" + file, pageNum);
   });
 }
 
@@ -169,35 +177,25 @@ function renderPage(num) {
    📌 翻页
    ========================= */
 function nextPage() {
-  if (!pdfDoc) return;
-  if (pageNum >= pdfDoc.numPages) return;
-
-  pageNum++;
-  renderPage(pageNum);
+  if (pageNum < pdfDoc.numPages) {
+    pageNum++;
+    render();
+  }
 }
 
 function prevPage() {
-  if (!pdfDoc) return;
-  if (pageNum <= 1) return;
-
-  pageNum--;
-  renderPage(pageNum);
+  if (pageNum > 1) {
+    pageNum--;
+    render();
+  }
 }
 
 /* =========================
-   🔖 书签（稳定版）
+   🔖 书签功能（统一）
    ========================= */
 function bookmarkPage() {
-  if (!file) return;
-
   localStorage.setItem("bookmark_" + file, pageNum);
-
-  pageinfo.innerText =
-    "🔖 Bookmarked page " + pageNum + " / " + pdfDoc.numPages;
-
-  setTimeout(() => {
-    pageinfo.innerText = pageNum + " / " + pdfDoc.numPages;
-  }, 1200);
+  alert("Bookmarked page " + pageNum);
 }
 
 /* =========================
