@@ -2,31 +2,48 @@
 <html>
 <head>
   <title>Reader</title>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
+
     body {
       margin: 0;
       background: #111;
       color: white;
       font-family: Arial, sans-serif;
+      overflow: hidden;
     }
+
+    /* =========================
+       📚 Top Bar
+    ========================= */
 
     .topbar {
       display: flex;
-      justify-content: space-between;
-      padding: 12px;
+      align-items: center;
+      padding: 14px 18px;
       background: #000;
       position: sticky;
       top: 0;
       z-index: 10;
     }
 
-    .topbar a {
+    .home-link {
       color: white;
       text-decoration: none;
       font-size: 14px;
+      opacity: 0.85;
+      transition: opacity 0.2s ease;
     }
+
+    .home-link:hover {
+      opacity: 1;
+    }
+
+    /* =========================
+       📖 Viewer
+    ========================= */
 
     .viewer {
       display: flex;
@@ -38,10 +55,15 @@
 
     canvas {
       max-width: 100%;
+      max-height: 100%;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border-radius: 4px;
     }
 
-    /* ⭐ 统一控制栏样式 */
+    /* =========================
+       🔘 Controls
+    ========================= */
+
     .controls {
       position: fixed;
       bottom: 20px;
@@ -50,6 +72,7 @@
       justify-content: center;
       gap: 18px;
       z-index: 20;
+      pointer-events: none;
     }
 
     .btn {
@@ -63,156 +86,332 @@
       color: black;
       font-size: 13px;
       font-weight: 500;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 0.15s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
     }
 
     .btn span.icon {
       font-size: 14px;
     }
 
+    /* =========================
+       📄 Page Info
+    ========================= */
+
     .pageinfo {
       position: fixed;
-      bottom: 70px;
+      bottom: 72px;
       width: 100%;
       text-align: center;
       font-size: 12px;
       opacity: 0.7;
+      z-index: 15;
     }
+
+    /* =========================
+       📱 Touch Zones
+    ========================= */
 
     .hotzone {
       position: fixed;
       top: 0;
       bottom: 0;
       width: 50%;
+      z-index: 5;
     }
 
-    .left { left: 0; }
-    .right { right: 0; }
+    .left {
+      left: 0;
+    }
+
+    .right {
+      right: 0;
+    }
+
+    /* =========================
+       📱 Mobile Optimization
+    ========================= */
+
+    @media (max-width: 768px) {
+
+      .viewer {
+        padding: 6px;
+        height: calc(100vh - 110px);
+      }
+
+      canvas {
+        max-width: 100%;
+      }
+
+      .controls {
+        bottom: 16px;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 9px 14px;
+        font-size: 12px;
+      }
+
+      .pageinfo {
+        bottom: 64px;
+      }
+
+      .topbar {
+        padding: 12px 14px;
+      }
+
+      .home-link {
+        font-size: 13px;
+      }
+    }
+
   </style>
 </head>
 
 <body>
 
+<!-- =========================
+     📚 Top Navigation
+========================= -->
+
 <div class="topbar">
-  <a href="index.html">← Homepage</a>
-  <div></div>
-  <div></div>
+  <a href="index.html" class="home-link">← Homepage</a>
 </div>
+
+<!-- =========================
+     📖 PDF Viewer
+========================= -->
 
 <div class="viewer">
   <canvas id="pdfCanvas"></canvas>
 </div>
 
-<div class="pageinfo" id="pageinfo">Loading...</div>
+<!-- =========================
+     📄 Page Number
+========================= -->
 
-<!-- ⭐ 统一按钮：图标 + 文字 Bookmark -->
+<div class="pageinfo" id="pageinfo">
+  Loading...
+</div>
+
+<!-- =========================
+     🔘 Controls
+========================= -->
+
 <div class="controls">
-  <button class="btn" onclick="prevPage()">◀ Prev</button>
+
+  <button class="btn" onclick="prevPage()">
+    ◀ Prev
+  </button>
 
   <button class="btn" onclick="bookmarkPage()">
     <span class="icon">🔖</span>
     Bookmark
   </button>
 
-  <button class="btn" onclick="nextPage()">Next ▶</button>
+  <button class="btn" onclick="nextPage()">
+    Next ▶
+  </button>
+
 </div>
 
-<!-- 翻页热区 -->
+<!-- =========================
+     📱 Swipe / Tap Zones
+========================= -->
+
 <div class="hotzone left" onclick="prevPage()"></div>
 <div class="hotzone right" onclick="nextPage()"></div>
+
+<!-- =========================
+     📚 PDF.js
+========================= -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script>
-const file = new URLSearchParams(location.search).get("book");
 
-const canvas = document.getElementById("pdfCanvas");
-const ctx = canvas.getContext("2d");
-const pageinfo = document.getElementById("pageinfo");
+const file =
+  new URLSearchParams(window.location.search).get("book");
+
+const canvas =
+  document.getElementById("pdfCanvas");
+
+const ctx =
+  canvas.getContext("2d");
+
+const pageinfo =
+  document.getElementById("pageinfo");
 
 let pdfDoc = null;
 let pageNum = 1;
+
+/* =========================
+   📚 PDF Worker
+========================= */
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 /* =========================
-   📌 初始化进度
-   ========================= */
+   📌 Restore Reading Progress
+========================= */
+
 if (file) {
-  const saved = localStorage.getItem("page_" + file);
-  if (saved) pageNum = parseInt(saved);
+
+  const savedPage =
+    localStorage.getItem("page_" + file);
+
+  if (savedPage) {
+    pageNum = parseInt(savedPage);
+  }
 }
 
 /* =========================
-   📌 加载 PDF
-   ========================= */
+   📖 Load PDF
+========================= */
+
 pdfjsLib.getDocument(file).promise.then(pdf => {
+
   pdfDoc = pdf;
+
   render();
+
+}).catch(error => {
+
+  console.error(error);
+
+  pageinfo.innerText =
+    "Failed to load PDF";
+
 });
 
 /* =========================
-   📖 渲染
-   ========================= */
+   📖 Render Page
+========================= */
+
 function render() {
+
   pdfDoc.getPage(pageNum).then(page => {
 
-    const viewport = page.getViewport({ scale: 1.5 });
+    const isMobile =
+      window.innerWidth < 768;
 
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
+    const scale =
+      isMobile ? 1.2 : 1.5;
+
+    const viewport =
+      page.getViewport({ scale });
+
+    canvas.height =
+      viewport.height;
+
+    canvas.width =
+      viewport.width;
 
     page.render({
       canvasContext: ctx,
       viewport: viewport
     });
 
-    pageinfo.innerText = pageNum + " / " + pdfDoc.numPages;
+    pageinfo.innerText =
+      pageNum + " / " + pdfDoc.numPages;
 
-    localStorage.setItem("page_" + file, pageNum);
+    localStorage.setItem(
+      "page_" + file,
+      pageNum
+    );
+
   });
 }
 
 /* =========================
-   📌 翻页
-   ========================= */
+   ▶ Next Page
+========================= */
+
 function nextPage() {
+
+  if (!pdfDoc) return;
+
   if (pageNum < pdfDoc.numPages) {
+
     pageNum++;
+
     render();
   }
 }
+
+/* =========================
+   ◀ Previous Page
+========================= */
 
 function prevPage() {
+
+  if (!pdfDoc) return;
+
   if (pageNum > 1) {
+
     pageNum--;
+
     render();
   }
 }
 
 /* =========================
-   🔖 书签功能（统一）
-   ========================= */
+   🔖 Bookmark
+========================= */
+
 function bookmarkPage() {
-  localStorage.setItem("bookmark_" + file, pageNum);
-  alert("Bookmarked page " + pageNum);
+
+  localStorage.setItem(
+    "bookmark_" + file,
+    pageNum
+  );
+
+  pageinfo.innerText =
+    "🔖 Bookmarked page " + pageNum;
+
+  setTimeout(() => {
+
+    pageinfo.innerText =
+      pageNum + " / " + pdfDoc.numPages;
+
+  }, 1200);
 }
 
 /* =========================
-   📱 手势翻页
-   ========================= */
+   📱 Swipe Navigation
+========================= */
+
 let startX = 0;
 
 document.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
+
+  startX =
+    e.touches[0].clientX;
+
 });
 
 document.addEventListener("touchend", e => {
-  let endX = e.changedTouches[0].clientX;
 
-  if (startX - endX > 50) nextPage();
-  if (endX - startX > 50) prevPage();
+  let endX =
+    e.changedTouches[0].clientX;
+
+  if (startX - endX > 50) {
+    nextPage();
+  }
+
+  if (endX - startX > 50) {
+    prevPage();
+  }
+
 });
+
 </script>
 
 </body>
