@@ -1,3 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reader</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    /* =========================
+       📚 Top Bar
+    ========================= */
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px;
+      background: #000;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .home-link {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      opacity: 0.85;
+      transition: opacity 0.2s ease;
+    }
+
+    .home-link:hover {
+      opacity: 1;
+    }
+
+    /* =========================
+       📖 Viewer
+    ========================= */
+
+    .viewer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(100vh - 120px);
+      padding: 10px;
+    }
+
+    canvas {
+      max-width: 100%;
+      max-height: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border-radius: 4px;
+    }
+
+    /* =========================
+       🔘 Controls
+    ========================= */
+
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      background: white;
+      color: black;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 0.15s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn span.icon {
+      font-size: 14px;
+    }
+
+    /* =========================
+       📄 Page Info
+    ========================= */
+
+    .pageinfo {
+      position: fixed;
+      bottom: 72px;
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.7;
+      z-index: 15;
+    }
+
+    /* =========================
+       📱 Touch Zones
+    ========================= */
+
+    .hotzone {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      z-index: 5;
+    }
+
+    .left {
+      left: 0;
+    }
+
+    .right {
+      right: 0;
+    }
+
+    /* =========================
+       📱 Mobile Optimization
+    ========================= */
+
+    @media (max-width: 768px) {
+
+      .viewer {
+        padding: 6px;
+        height: calc(100vh - 110px);
+      }
+
+      canvas {
+        max-width: 100%;
+      }
+
+      .controls {
+        bottom: 16px;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 9px 14px;
+        font-size: 12px;
+      }
+
+      .pageinfo {
+        bottom: 64px;
+      }
+
+      .topbar {
+        padding: 12px 14px;
+      }
+
+      .home-link {
+        font-size: 13px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- =========================
+     📚 Top Navigation
+========================= -->
+
+<div class="topbar">
+  <a href="index.html" class="home-link">← Homepage</a>
+</div>
+
+<!-- =========================
+     📖 PDF Viewer
+========================= -->
+
+<div class="viewer">
+  <canvas id="pdfCanvas"></canvas>
+</div>
+
+<!-- =========================
+     📄 Page Number
+========================= -->
+
+<div class="pageinfo" id="pageinfo">
+  Loading...
+</div>
+
+<!-- =========================
+     🔘 Controls
+========================= -->
+
+<div class="controls">
+
+  <button class="btn" onclick="prevPage()">
+    ◀ Prev
+  </button>
+
+  <button class="btn" onclick="bookmarkPage()">
+    <span class="icon">🔖</span>
+    Bookmark
+  </button>
+
+  <button class="btn" onclick="nextPage()">
+    Next ▶
+  </button>
+
+</div>
+
+<!-- =========================
+     📱 Swipe / Tap Zones
+========================= -->
+
+<div class="hotzone left" onclick="prevPage()"></div>
+<div class="hotzone right" onclick="nextPage()"></div>
+
+<!-- =========================
+     📚 PDF.js
+========================= -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
 <script>
 
 const file =
@@ -23,10 +259,11 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 /* =========================
-   📌 Restore Progress
+   📌 Restore Reading Progress
 ========================= */
 
 if (file) {
+
   const savedPage =
     localStorage.getItem("page_" + file);
 
@@ -40,12 +277,22 @@ if (file) {
 ========================= */
 
 pdfjsLib.getDocument(file).promise.then(pdf => {
+
   pdfDoc = pdf;
+
   render();
+
+}).catch(error => {
+
+  console.error(error);
+
+  pageinfo.innerText =
+    "Failed to load PDF";
+
 });
 
 /* =========================
-   📖 Render
+   📖 Render Page
 ========================= */
 
 function render() {
@@ -75,27 +322,42 @@ function render() {
     pageinfo.innerText =
       pageNum + " / " + pdfDoc.numPages;
 
-    localStorage.setItem("page_" + file, pageNum);
+    localStorage.setItem(
+      "page_" + file,
+      pageNum
+    );
 
   });
 }
 
 /* =========================
-   ▶ Next / Prev
+   ▶ Next Page
 ========================= */
 
 function nextPage() {
+
   if (!pdfDoc) return;
+
   if (pageNum < pdfDoc.numPages) {
+
     pageNum++;
+
     render();
   }
 }
 
+/* =========================
+   ◀ Previous Page
+========================= */
+
 function prevPage() {
+
   if (!pdfDoc) return;
+
   if (pageNum > 1) {
+
     pageNum--;
+
     render();
   }
 }
@@ -115,66 +377,42 @@ function bookmarkPage() {
     "🔖 Bookmarked page " + pageNum;
 
   setTimeout(() => {
+
     pageinfo.innerText =
       pageNum + " / " + pdfDoc.numPages;
-  }, 1000);
+
+  }, 1200);
 }
 
 /* =========================
-   📱 FIXED SWIPE LOGIC (关键修复)
+   📱 Swipe Navigation
 ========================= */
 
 let startX = 0;
-let startY = 0;
-let touching = false;
-let multiTouch = false;
 
 document.addEventListener("touchstart", e => {
 
-  touching = true;
-
-  // 👇 两指以上 → 禁止翻页
-  if (e.touches.length > 1) {
-    multiTouch = true;
-    return;
-  }
-
-  multiTouch = false;
-
-  startX = e.touches[0].clientX;
-  startY = e.touches[0].clientY;
+  startX =
+    e.touches[0].clientX;
 
 });
 
 document.addEventListener("touchend", e => {
 
-  touching = false;
-
-  // ❌ 如果是 pinch zoom（多指操作）→ 直接忽略
-  if (multiTouch) {
-    multiTouch = false;
-    return;
-  }
-
   let endX =
     e.changedTouches[0].clientX;
 
-  let endY =
-    e.changedTouches[0].clientY;
+  if (startX - endX > 50) {
+    nextPage();
+  }
 
-  let diffX = startX - endX;
-  let diffY = startY - endY;
-
-  // 📌 防止误判：必须“水平滑动明显大于垂直”
-  if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
-
-    if (diffX > 0) {
-      nextPage();
-    } else {
-      prevPage();
-    }
+  if (endX - startX > 50) {
+    prevPage();
   }
 
 });
 
 </script>
+
+</body>
+</html> 
