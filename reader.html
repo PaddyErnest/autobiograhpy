@@ -1,16 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Reader</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500&display=swap" rel="stylesheet">
-
 <style>
 
-*, *::before, *::after{
+*, *::before, ::after{
   box-sizing:border-box;
   -webkit-tap-highlight-color:transparent;
 }
@@ -27,9 +24,6 @@
   --btn-bg:rgba(255,255,255,0.1);
   --btn-hover:rgba(255,255,255,0.16);
   --btn-active:rgba(255,255,255,0.08);
-  --radius:12px;
-  --radius-sm:8px;
-  --blur:blur(20px) saturate(180%);
 }
 
 html,body{
@@ -39,8 +33,7 @@ html,body{
   overflow:hidden;
   background:var(--bg);
   color:var(--text-primary);
-  font-family:-apple-system,"SF Pro Display","Helvetica Neue",Arial,sans-serif;
-  -webkit-font-smoothing:antialiased;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 
 .topbar{
@@ -52,32 +45,16 @@ html,body{
   z-index:100;
   display:flex;
   align-items:center;
-  justify-content:flex-start;
   padding:0 16px;
   background:var(--bar-bg);
-  backdrop-filter:var(--blur);
-  border-bottom:0.5px solid var(--border);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
 }
 
 .home-btn{
-  display:flex;
-  align-items:center;
-  gap:5px;
-  padding:6px 10px 6px 6px;
-  border-radius:var(--radius-sm);
-  color:#ffffff; /* 改成白色 */
+  color:white;
   text-decoration:none;
   font-size:15px;
-  transition:background .15s ease;
-}
-
-.home-btn:hover{
-  background:rgba(255,255,255,0.08);
-}
-
-.home-btn svg{
-  width:16px;
-  height:16px;
 }
 
 .viewer{
@@ -94,8 +71,6 @@ html,body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:flex-start;
-  min-height:100%;
 }
 
 .doc-title{
@@ -105,9 +80,8 @@ html,body{
   color:white;
   text-align:center;
   max-width:90vw;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  line-height:1.4;
+  white-space:normal;
 }
 
 canvas{
@@ -116,10 +90,6 @@ canvas{
   box-shadow:
     0 2px 8px rgba(0,0,0,.4),
     0 12px 40px rgba(0,0,0,.5);
-  transition:
-    width .15s ease,
-    height .15s ease,
-    box-shadow .2s ease;
 }
 
 .bottombar{
@@ -135,73 +105,40 @@ canvas{
   gap:8px;
   padding:0 16px 8px;
   background:var(--bar-bg);
-  backdrop-filter:var(--blur);
-  border-top:0.5px solid var(--border);
+  backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
 }
 
 .btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:5px;
-  padding:0 14px;
   height:36px;
+  padding:0 14px;
+  border:none;
   border-radius:20px;
-  border:0.5px solid var(--border);
   background:var(--btn-bg);
-  color:var(--text-primary);
-  font-size:14px;
+  color:white;
   cursor:pointer;
-  transition:all .15s ease;
 }
 
 .btn:hover{
   background:var(--btn-hover);
 }
 
-.btn:active{
-  transform:scale(.95);
-  background:var(--btn-active);
-}
-
-.btn-icon{
-  width:36px;
-  padding:0;
-}
-
 .page-info{
-  min-width:70px;
+  min-width:80px;
   text-align:center;
-  font-size:13px;
   color:var(--text-secondary);
+  font-size:13px;
 }
 
 .loading{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:12px;
   margin-top:80px;
-}
-
-.spinner{
-  width:28px;
-  height:28px;
-  border:2px solid var(--surface-2);
-  border-top-color:var(--accent);
-  border-radius:50%;
-  animation:spin .8s linear infinite;
-}
-
-@keyframes spin{
-  to{transform:rotate(360deg);}
+  text-align:center;
 }
 
 .zoom-badge{
   position:fixed;
   top:64px;
   right:16px;
-  z-index:90;
   background:rgba(0,0,0,.6);
   color:white;
   padding:4px 10px;
@@ -217,10 +154,10 @@ canvas{
 
 .toast{
   position:fixed;
-  bottom:88px;
+  bottom:90px;
   left:50%;
   transform:translateX(-50%);
-  background:rgba(44,44,46,.96);
+  background:#333;
   color:white;
   padding:8px 16px;
   border-radius:20px;
@@ -238,23 +175,19 @@ canvas{
 <body>
 
 <div class="topbar">
-  <a href="index.html" class="home-btn">
-    ← Homepage
-  </a>
+  <a href="index.html" class="home-btn">← Homepage</a>
 </div>
 
 <div class="zoom-badge" id="zoomBadge">100%</div>
 
-<div class="viewer" id="viewer">
+<div class="viewer">
 
   <div class="canvas-wrap">
 
-    <!-- 标题移动到PDF上方 -->
-    <div class="doc-title" id="docTitle">—</div>
+    <div class="doc-title" id="docTitle">Loading...</div>
 
     <div class="loading" id="loadingState">
-      <div class="spinner"></div>
-      <span style="color:rgba(255,255,255,.5)">Loading…</span>
+      Loading PDF...
     </div>
 
     <canvas id="pdfCanvas" style="display:none;"></canvas>
@@ -267,17 +200,17 @@ canvas{
 
 <div class="bottombar">
 
-<button class="btn" onclick="prevPage()">Prev</button>
+  <button class="btn" onclick="prevPage()">Prev</button>
 
-<button class="btn btn-icon" onclick="zoomOut()">−</button>
+  <button class="btn" onclick="zoomOut()">−</button>
 
-<span class="page-info" id="pageInfo">— / —</span>
+  <span class="page-info" id="pageInfo">— / —</span>
 
-<button class="btn btn-icon" onclick="zoomIn()">+</button>
+  <button class="btn" onclick="zoomIn()">+</button>
 
-<button class="btn" onclick="bookmarkPage()">Mark</button>
+  <button class="btn" onclick="bookmarkPage()">🔖 Bookmark</button>
 
-<button class="btn" onclick="nextPage()">Next</button>
+  <button class="btn" onclick="nextPage()">Next</button>
 
 </div>
 
@@ -290,6 +223,7 @@ const SCALE_MAX = 4;
 const SCALE_STEP = 0.25;
 
 let file = new URLSearchParams(location.search).get('book') || '';
+
 let pdfDoc = null;
 let pageNum = 1;
 let scale = window.innerWidth < 600 ? 1.0 : 1.4;
@@ -300,36 +234,45 @@ const pageInfo = document.getElementById('pageInfo');
 const loading = document.getElementById('loadingState');
 const zoomBadge = document.getElementById('zoomBadge');
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+/ ===== Book Titles ===== */
+
+const bookTitles = {
+
+  "importance-me.pdf":
+    "The Importance of Being... Me",
+
+  "coronavirus-journal-2.pdf":
+    "CORONAVIRUS Journal 2",
+
+  "busy-people.pdf":
+    "Memoir - Busy People Make Time"
+
+};
 
 if(file){
 
-  let name = file
-    .split('/')
-    .pop()
-    .replace('.pdf','')
-    .replace(/[-_]/g,' ');
+  const fileName = file.split('/').pop();
 
-  document.getElementById('docTitle').textContent = name;
+  document.getElementById('docTitle').textContent =
+    bookTitles[fileName] || fileName;
 
-  const saved = localStorage.getItem('page_' + file);
+  const saved =
+    localStorage.getItem('page_' + file);
 
   if(saved){
     pageNum = parseInt(saved);
   }
 }
 
-async function loadPDF(){
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-  if(!file){
-    showToast('No PDF specified');
-    return;
-  }
+async function loadPDF(){
 
   try{
 
-    pdfDoc = await pdfjsLib.getDocument(file).promise;
+    pdfDoc =
+      await pdfjsLib.getDocument(file).promise;
 
     loading.style.display = 'none';
     canvas.style.display = 'block';
@@ -347,19 +290,26 @@ async function loadPDF(){
 
 async function render(){
 
-  if(!pdfDoc) return;
+  const page =
+    await pdfDoc.getPage(pageNum);
 
-  const page = await pdfDoc.getPage(pageNum);
+  const viewport =
+    page.getViewport({ scale });
 
-  const viewport = page.getViewport({ scale });
+  const ratio =
+    window.devicePixelRatio || 1;
 
-  const ratio = window.devicePixelRatio || 1;
+  canvas.width =
+    viewport.width * ratio;
 
-  canvas.width = viewport.width * ratio;
-  canvas.height = viewport.height * ratio;
+  canvas.height =
+    viewport.height * ratio;
 
-  canvas.style.width = viewport.width + 'px';
-  canvas.style.height = viewport.height + 'px';
+  canvas.style.width =
+    viewport.width + 'px';
+
+  canvas.style.height =
+    viewport.height + 'px';
 
   ctx.setTransform(ratio,0,0,ratio,0,0);
 
@@ -371,34 +321,33 @@ async function render(){
   pageInfo.textContent =
     pageNum + ' / ' + pdfDoc.numPages;
 
-  localStorage.setItem('page_' + file,pageNum);
-
-  updateButtons();
+  localStorage.setItem(
+    'page_' + file,
+    pageNum
+  );
 }
-
-loadPDF();
 
 function nextPage(){
 
-  if(pageNum >= pdfDoc.numPages) return;
-
-  pageNum++;
-
-  render();
+  if(pageNum < pdfDoc.numPages){
+    pageNum++;
+    render();
+  }
 }
 
 function prevPage(){
 
-  if(pageNum <= 1) return;
-
-  pageNum--;
-
-  render();
+  if(pageNum > 1){
+    pageNum--;
+    render();
+  }
 }
 
 function zoomIn(){
 
-  scale = Math.min(SCALE_MAX, scale + SCALE_STEP);
+  scale =
+    Math.min(SCALE_MAX,
+      scale + SCALE_STEP);
 
   render();
 
@@ -407,7 +356,9 @@ function zoomIn(){
 
 function zoomOut(){
 
-  scale = Math.max(SCALE_MIN, scale - SCALE_STEP);
+  scale =
+    Math.max(SCALE_MIN,
+      scale - SCALE_STEP);
 
   render();
 
@@ -423,9 +374,10 @@ function showZoom(){
 
   clearTimeout(window.zoomTimer);
 
-  window.zoomTimer = setTimeout(()=>{
-    zoomBadge.classList.remove('show');
-  },1200);
+  window.zoomTimer =
+    setTimeout(()=>{
+      zoomBadge.classList.remove('show');
+    },1200);
 }
 
 function bookmarkPage(){
@@ -435,12 +387,15 @@ function bookmarkPage(){
     pageNum
   );
 
-  showToast('Bookmarked page ' + pageNum);
+  showToast(
+    'Bookmarked page ' + pageNum
+  );
 }
 
 function showToast(msg){
 
-  const toast = document.getElementById('toast');
+  const toast =
+    document.getElementById('toast');
 
   toast.innerText = msg;
 
@@ -448,18 +403,10 @@ function showToast(msg){
 
   clearTimeout(window.toastTimer);
 
-  window.toastTimer = setTimeout(()=>{
-    toast.classList.remove('show');
-  },2000);
-}
-
-function updateButtons(){
-
-  document.querySelectorAll('.btn')[0].disabled =
-    pageNum <= 1;
-
-  document.querySelectorAll('.btn')[4].disabled =
-    pageNum >= pdfDoc.numPages;
+  window.toastTimer =
+    setTimeout(()=>{
+      toast.classList.remove('show');
+    },2000);
 }
 
 document.addEventListener('keydown',(e)=>{
@@ -487,19 +434,9 @@ document.addEventListener('keydown',(e)=>{
   }
 });
 
+loadPDF();
+
 </script>
 
 </body>
 </html>
-const bookTitles = {
-
-  "importance-me.pdf":
-    "The Importance of Being... Me",
-
-  "coronavirus-journal-2.pdf":
-    "CORONAVIRUS Journal 2",
-
-  "busy-people.pdf":
-    "Memoir - Busy People Make Time"
-
-};
