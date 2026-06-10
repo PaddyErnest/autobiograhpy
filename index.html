@@ -173,9 +173,17 @@
 
 <!-- 🔥 关键新增代码：控制跳转到 reader.html -->
 <script>
-function openBook(file) {
-  window.location.href = "reader.html?book=" + file;
+
+function openBook(file, title) {
+
+  window.location.href =
+    "reader.html?book=" +
+    encodeURIComponent(file) +
+    "&title=" +
+    encodeURIComponent(title);
+
 }
+
 </script>
 
 </body>
