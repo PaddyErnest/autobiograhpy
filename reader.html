@@ -234,7 +234,7 @@ const pageInfo = document.getElementById('pageInfo');
 const loading = document.getElementById('loadingState');
 const zoomBadge = document.getElementById('zoomBadge');
 
-/* ===== Book Titles（修复完成） ===== */
+/ ===== Book Titles ===== */
 
 const bookTitles = {
 
@@ -242,13 +242,13 @@ const bookTitles = {
     "The Importance of Being... Me",
 
   "coronavirus-journal-2.pdf":
-    "Coronavirus Journal 2",
+    "Coronavirus Journal 2020-2022",
 
   "busy-people.pdf":
-    "Memoir – Busy People Make Time",
+    "My Years at Diver Consolidated Industries"
 
-  "harold-ernest.pdf":
-    "Harold Ernest"
+   "harold-ernest.pdf":
+    "A Search in Ernest"
 };
 
 if(file){
@@ -330,6 +330,7 @@ async function render(){
 }
 
 function nextPage(){
+
   if(pageNum < pdfDoc.numPages){
     pageNum++;
     render();
@@ -337,6 +338,7 @@ function nextPage(){
 }
 
 function prevPage(){
+
   if(pageNum > 1){
     pageNum--;
     render();
@@ -344,14 +346,24 @@ function prevPage(){
 }
 
 function zoomIn(){
-  scale = Math.min(SCALE_MAX, scale + SCALE_STEP);
+
+  scale =
+    Math.min(SCALE_MAX,
+      scale + SCALE_STEP);
+
   render();
+
   showZoom();
 }
 
 function zoomOut(){
-  scale = Math.max(SCALE_MIN, scale - SCALE_STEP);
+
+  scale =
+    Math.max(SCALE_MIN,
+      scale - SCALE_STEP);
+
   render();
+
   showZoom();
 }
 
