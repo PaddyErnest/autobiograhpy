@@ -223,7 +223,7 @@ const SCALE_MAX = 4;
 const SCALE_STEP = 0.25;
 
 let file = new URLSearchParams(location.search).get('book') || '';
-
+console.log("Loading PDF:", file);
 let pdfDoc = null;
 let pageNum = 1;
 let scale = window.innerWidth < 600 ? 1.0 : 1.4;
